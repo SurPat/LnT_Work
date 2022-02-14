@@ -1,7 +1,7 @@
 import pypylon.pylon as py
 import numpy as np
 import cv2
-import time
+import time ; from New_ObjectDimension_v2 import *
 
 last_timestamp = 0
 timestamp = 0
@@ -12,7 +12,7 @@ instant_camera = py.InstantCamera(first_device)
 instant_camera.Open()
 
 # Optional if you set it in Pylon Viewer
-instant_camera.PixelFormat = "BayerRG8"
+instant_camera.PixelFormat = "RGB8"
 
 instant_camera.StartGrabbing(py.GrabStrategy_LatestImages)
 
@@ -27,7 +27,7 @@ while True:
             try:
                 if res.GrabSucceeded():
                     currImg = res.Array
-                    img = cv2.cvtColor(currImg, cv2.COLOR_BAYER_RG2RGB)
+                    obj_dimen(currImg)
             finally:
                 res.Release()
 
@@ -44,8 +44,7 @@ while True:
         print(frame_rate)
 
     # Display new image in video window.
-    
-    cv2.imshow('Video', img)
+    cv2.imshow('Video', currImg)
     # Wait    1 ms.
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
