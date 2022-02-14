@@ -12,7 +12,7 @@ instant_camera = py.InstantCamera(first_device)
 instant_camera.Open()
 
 # Optional if you set it in Pylon Viewer
-instant_camera.PixelFormat = "RGB8"
+instant_camera.PixelFormat = "BayerRG8"
 
 instant_camera.StartGrabbing(py.GrabStrategy_LatestImages)
 
@@ -27,6 +27,7 @@ while True:
             try:
                 if res.GrabSucceeded():
                     currImg = res.Array
+                    img = cv2.cvtColor(currImg, cv2.COLOR_BAYER_RG2RGB)
             finally:
                 res.Release()
 
@@ -43,7 +44,8 @@ while True:
         print(frame_rate)
 
     # Display new image in video window.
-    cv2.imshow('Video', currImg)
+    
+    cv2.imshow('Video', img)
     # Wait    1 ms.
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
