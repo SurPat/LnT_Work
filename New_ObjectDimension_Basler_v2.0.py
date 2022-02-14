@@ -12,7 +12,7 @@ instant_camera = py.InstantCamera(first_device)
 instant_camera.Open()
 
 # Optional if you set it in Pylon Viewer
-instant_camera.PixelFormat = "RGB8"
+instant_camera.PixelFormat = "BayerRG8"
 
 instant_camera.StartGrabbing(py.GrabStrategy_LatestImages)
 
