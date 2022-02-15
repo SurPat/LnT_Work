@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import time  
 from New_ObjectDimension_v2 import *
-from New_ProductSorting_v2 import *
+#from New_ProductSorting_v2 import *
 
 last_timestamp = 0
 timestamp = 0
@@ -29,8 +29,10 @@ while True:
             try:
                 if res.GrabSucceeded():
                     currImg = res.Array
-                    #ObjDim(currImg)  # Object Dimension detection
-                    ProdSort(currImg)   # Product Sorting
+                    currImg = cv2.cvtColor(currImg,cv2.COLOR_GRAY2RGB)
+                    ObjDim(currImg)  # Object Dimension detection
+                    #ProdSort(currImg)   # Product Sorting
+                    
             finally:
                 res.Release()
 
