@@ -26,58 +26,60 @@ def ObjDim(frame):
     (cnts, _) = contours.sort_contours(cnts)
     #print("New values",(cnts, _))
     pixles_to_size = None
+    try:
+        for c in cnts:
+            if cv2.contourArea(c) < 100:
+                continue
 
-    for c in cnts:
-        if cv2.contourArea(c) < 100:
-            continue
+            bbox = cv2.minAreaRect(c)
+            bbox = cv2.cv.BoxPoints(bbox) if imutils.is_cv2() else cv2.boxPoints(bbox)
+            box = np.array(bbox, dtype="int")
 
-        bbox = cv2.minAreaRect(c)
-        bbox = cv2.cv.BoxPoints(bbox) if imutils.is_cv2() else cv2.boxPoints(bbox)
-        box = np.array(bbox, dtype="int")
+            box = perspective.order_points(box)
+            cv2.drawContours(orig, [box.astype("int")], -1, (0, 255, 0), 2)
 
-        box = perspective.order_points(box)
-        cv2.drawContours(orig, [box.astype("int")], -1, (0, 255, 0), 2)
+            for (x, y) in box:
+                cv2.circle(orig, (int(x), int(y)), 5, (0, 0, 255), -1)
 
-        for (x, y) in box:
-            cv2.circle(orig, (int(x), int(y)), 5, (0, 0, 255), -1)
+            (tl, tr, br, bl) = box
+            (tltrX, tltrY) = midpoint(tl, tr)
+            (blbrX, blbrY) = midpoint(bl, br)
 
-        (tl, tr, br, bl) = box
-        (tltrX, tltrY) = midpoint(tl, tr)
-        (blbrX, blbrY) = midpoint(bl, br)
+            (tlblX, tlblY) = midpoint(tl, bl)
+            (trbrX, trbrY) = midpoint(tr, br)
 
-        (tlblX, tlblY) = midpoint(tl, bl)
-        (trbrX, trbrY) = midpoint(tr, br)
+            cv2.circle(orig, (int(tltrX), int(tltrY)), 5, (255, 0, 0), -1)
+            cv2.circle(orig, (int(blbrX), int(blbrY)), 5, (255, 0, 0), -1)
+            cv2.circle(orig, (int(tlblX), int(tlblY)), 5, (255, 0, 0), -1)
+            cv2.circle(orig, (int(trbrX), int(trbrY)), 5, (255, 0, 0), -1)
 
-        cv2.circle(orig, (int(tltrX), int(tltrY)), 5, (255, 0, 0), -1)
-        cv2.circle(orig, (int(blbrX), int(blbrY)), 5, (255, 0, 0), -1)
-        cv2.circle(orig, (int(tlblX), int(tlblY)), 5, (255, 0, 0), -1)
-        cv2.circle(orig, (int(trbrX), int(trbrY)), 5, (255, 0, 0), -1)
+            cv2.line(orig, (int(tltrX), int(tltrY)), (int(blbrX), int(blbrY)), (255, 0, 255), 2)
+            cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)), (255, 0, 255), 2)
 
-        cv2.line(orig, (int(tltrX), int(tltrY)), (int(blbrX), int(blbrY)), (255, 0, 255), 2)
-        cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)), (255, 0, 255), 2)
+            dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
+            dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
 
-        dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
-        dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
+            if pixles_to_size is None:
+                pixles_to_size = 4  # change value as per camera calibration
 
-        if pixles_to_size is None:
-            pixles_to_size = 4  # change value as per camera calibration
+            dimA = dA / pixles_to_size
+            dimB = dB / pixles_to_size
+            #print("width value is",dimA)
+            #print("lenth is",dimB)
 
-        dimA = dA / pixles_to_size
-        dimB = dB / pixles_to_size
-        #print("width value is",dimA)
-        #print("lenth is",dimB)
-
-        cv2.putText(orig, "{:.2f}mm".format(dimB), (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65,q
-                    (255, 255, 255), 2)
-        cv2.putText(orig, "{:.2f}mm".format(dimA), (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
-                    (255, 255, 255), 2)
-        frame_time = (time.time()-start_time)
-        print("-----{0} seconds---".format(frame_time))
-        FPS = 1/frame_time
-        print("FPS: ", FPS)
-        FPS_str = "FPS = {0}".format(str(FPS))
-        cv2.putText(orig, FPS_str, (1000, 1000), cv2.FONT_HERSHEY_SIMPLEX, 0.65,(255, 255, 255), 2)
-    cv2.imshow('frame', frame)
-    cv2.imshow("Test_Frame", orig)
-    
+            cv2.putText(orig, "{:.2f}mm".format(dimB), (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.65,q
+                        (255, 255, 255), 2)
+            cv2.putText(orig, "{:.2f}mm".format(dimA), (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
+                        (255, 255, 255), 2)
+            frame_time = (time.time()-start_time)
+            print("-----{0} seconds---".format(frame_time))
+            FPS = 1/frame_time
+            print("FPS: ", FPS)
+            FPS_str = "FPS = {0}".format(str(FPS))
+            cv2.putText(orig, FPS_str, (1000, 1000), cv2.FONT_HERSHEY_SIMPLEX, 0.65,(255, 255, 255), 2)
+        cv2.imshow('frame', frame)
+        cv2.imshow("Test_Frame", orig)
+    except:
+        Print("Searching for contours...")
+        cv2.imshow("Test_Frame", orig)
