@@ -38,69 +38,69 @@ def ProdSort(frame):
 
     cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
+    try:
+        (cnts, _) = contours.sort_contours(cnts)
+        pixles_to_size = None
+        for c in cnts:
+            if cv2.contourArea(c) < 100:
+                continue
 
-    (cnts, _) = contours.sort_contours(cnts)
+            bbox = cv2.minAreaRect(c)
+            bbox = cv2.cv.BoxPoints(bbox) if imutils.is_cv2() else cv2.boxPoints(bbox)
+            box = np.array(bbox, dtype="int")
 
-    pixles_to_size = None
+            box = perspective.order_points(box)
+            cv2.drawContours(orig, [box.astype("int")], -1, (0, 255, 0), 2)
 
-    for c in cnts:
-        if cv2.contourArea(c) < 100:
-            continue
+            for (x, y) in box:
+                cv2.circle(orig, (int(x), int(y)), 5, (0, 0, 255), -1)
 
-        bbox = cv2.minAreaRect(c)
-        bbox = cv2.cv.BoxPoints(bbox) if imutils.is_cv2() else cv2.boxPoints(bbox)
-        box = np.array(bbox, dtype="int")
+            (tl, tr, br, bl) = box
+            (tltrX, tltrY) = midpoint(tl, tr)
+            (blbrX, blbrY) = midpoint(bl, br)
 
-        box = perspective.order_points(box)
-        cv2.drawContours(orig, [box.astype("int")], -1, (0, 255, 0), 2)
+            (tlblX, tlblY) = midpoint(tl, bl)
+            (trbrX, trbrY) = midpoint(tr, br)
 
-        for (x, y) in box:
-            cv2.circle(orig, (int(x), int(y)), 5, (0, 0, 255), -1)
+            cv2.circle(orig, (int(tltrX), int(tltrY)), 5, (255, 0, 0), -1)
+            cv2.circle(orig, (int(blbrX), int(blbrY)), 5, (255, 0, 0), -1)
+            cv2.circle(orig, (int(tlblX), int(tlblY)), 5, (255, 0, 0), -1)
+            cv2.circle(orig, (int(trbrX), int(trbrY)), 5, (255, 0, 0), -1)
 
-        (tl, tr, br, bl) = box
-        (tltrX, tltrY) = midpoint(tl, tr)
-        (blbrX, blbrY) = midpoint(bl, br)
+            cv2.line(orig, (int(tltrX), int(tltrY)), (int(blbrX), int(blbrY)), (255, 0, 255), 2)
+            cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)), (255, 0, 255), 2)
 
-        (tlblX, tlblY) = midpoint(tl, bl)
-        (trbrX, trbrY) = midpoint(tr, br)
+            dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
+            dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
 
-        cv2.circle(orig, (int(tltrX), int(tltrY)), 5, (255, 0, 0), -1)
-        cv2.circle(orig, (int(blbrX), int(blbrY)), 5, (255, 0, 0), -1)
-        cv2.circle(orig, (int(tlblX), int(tlblY)), 5, (255, 0, 0), -1)
-        cv2.circle(orig, (int(trbrX), int(trbrY)), 5, (255, 0, 0), -1)
+            #compute the size of object
+            if pixles_to_size is None:
+                pixles_to_size = 4  # change value as per camera calibration
 
-        cv2.line(orig, (int(tltrX), int(tltrY)), (int(blbrX), int(blbrY)), (255, 0, 255), 2)
-        cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)), (255, 0, 255), 2)
+            dimA = dA / pixles_to_size
+            dimB = dB / pixles_to_size
 
-        dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
-        dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
-        
-        #compute the size of object
-        if pixles_to_size is None:
-            pixles_to_size = 4  # change value as per camera calibration
+            label = ProdLabel(dimA, dimB)
 
-        dimA = dA / pixles_to_size
-        dimB = dB / pixles_to_size
+            #print("width value is",dimA)
+            #print("lenth is",dimB)
 
-        label = ProdLabel(dimA, dimB)
 
-        #print("width value is",dimA)
-        #print("lenth is",dimB)
-        
-
-        cv2.putText(orig, "{:.2f}mm".format(dimB), (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65,
-                    (255, 255, 255), 2)
-        cv2.putText(orig, "{:.2f}mm".format(dimA), (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
-                    (255, 255, 255), 2)
-        cv2.putText(orig, label, (int(trbrX + 10), int(trbrY+20)), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
-                    (255, 255, 255), 2)
-        frame_time = (time.time()-start_time)
-        print("-----{0} seconds---".format(frame_time))
-        FPS = 1/frame_time
-        print("FPS: ", FPS)
-        FPS_str = "FPS = {0}".format(str(FPS))
-        cv2.putText(orig, FPS_str, (1000, 1000), cv2.FONT_HERSHEY_SIMPLEX, 0.65,(255, 255, 255), 2)
-    cv2.imshow('frame', frame)
-    cv2.imshow("Test_Frame", orig)
-    
+            cv2.putText(orig, "{:.2f}mm".format(dimB), (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.65,
+                        (255, 255, 255), 2)
+            cv2.putText(orig, "{:.2f}mm".format(dimA), (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
+                        (255, 255, 255), 2)
+            cv2.putText(orig, label, (int(trbrX + 10), int(trbrY+20)), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
+                        (255, 255, 255), 2)
+            frame_time = (time.time()-start_time)
+            print("-----{0} seconds---".format(frame_time))
+            FPS = 1/frame_time
+            print("FPS: ", FPS)
+            FPS_str = "FPS = {0}".format(str(FPS))
+            cv2.putText(orig, FPS_str, (1000, 1000), cv2.FONT_HERSHEY_SIMPLEX, 0.65,(255, 255, 255), 2)
+        cv2.imshow('frame', frame)
+        cv2.imshow("Test_Frame", orig)
+    except:
+        print("Searching for contours..")
+        cv2.imshow("Test_Frame", orig)
