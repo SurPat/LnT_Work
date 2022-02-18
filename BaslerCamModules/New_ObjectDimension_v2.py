@@ -23,10 +23,10 @@ def ObjDim(frame):
     cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     #print(cnts)
-    (cnts, _) = contours.sort_contours(cnts)
-    #print("New values",(cnts, _))
-    pixles_to_size = None
     try:
+        (cnts, _) = contours.sort_contours(cnts)
+        #print("New values",(cnts, _))
+        pixles_to_size = None
         for c in cnts:
             if cv2.contourArea(c) < 100:
                 continue
