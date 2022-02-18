@@ -11,7 +11,7 @@ def midpoint(ptA, ptB):
 
 global prod_dim
 
-prods = [('Sharpner',4.5,6.5),('clip',10.2,4.2),('check',20.9,10.9)]
+prods = [('Connector',42,38),('cap',36,18),('Washer',18,18),('Sharpner',28,18),('clip',34,18)]
 
 def ProdLabel(l, w):
     for i in prods:
