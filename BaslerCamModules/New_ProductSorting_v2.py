@@ -9,9 +9,21 @@ import time
 def midpoint(ptA, ptB):
     return (ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5
 
-def ProdLabel(l, w):
-    return "got it.."
+global prod_dim
 
+prods = [('Sharpner',4.5,6.5),('clip',10.2,4.2),('check',20.9,10.9)]
+
+def ProdLabel(l, w):
+    for i in prods:
+        prodname = i[0]
+        ProdLen = i[1]
+        ProdWid = i[2]
+        print(i, ProdLen, ProdWid)
+        if ((((ProdLen + 3) >= l >= (ProdLen - 3)) & (ProdWid + 3 >= l >= (ProdWid - 3))) or (
+                                            ((ProdLen + 3) >= w >= (ProdLen - 3)) & (ProdWid + 3 >= w >= (ProdWid - 3)))):
+            return prodname
+        else:
+            continue        
 # initialize camera
 
 def ProdSort(frame):
@@ -72,8 +84,8 @@ def ProdSort(frame):
 
         label = ProdLabel(dimA, dimB)
 
-        print("width value is",dimA)
-        print("lenth is",dimB)
+        #print("width value is",dimA)
+        #print("lenth is",dimB)
         
 
         cv2.putText(orig, "{:.2f}mm".format(dimB), (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX,
@@ -83,11 +95,12 @@ def ProdSort(frame):
                     (255, 255, 255), 2)
         cv2.putText(orig, label, (int(trbrX + 10), int(trbrY+20)), cv2.FONT_HERSHEY_SIMPLEX, 0.65,
                     (255, 255, 255), 2)
-
-
-
-    print("-----%s seconds---" % (time.time()-start_time))
-
+        frame_time = (time.time()-start_time)
+        print("-----{0} seconds---".format(frame_time))
+        FPS = 1/frame_time
+        print("FPS: ", FPS)
+        FPS_str = "FPS = {0}".format(str(FPS))
+        cv2.putText(orig, FPS_str, (1000, 1000), cv2.FONT_HERSHEY_SIMPLEX, 0.65,(255, 255, 255), 2)
     cv2.imshow('frame', frame)
     cv2.imshow("Test_Frame", orig)
     
